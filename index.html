@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopManager Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Skeumorphic styles */
+        .skeumorphic {
+            background: linear-gradient(to bottom, #f4f4f4, #e4e4e4);
+            border: 1px solid #ccc;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.8);
+            border-radius: 6px;
+        }
+        .skeumorphic-button {
+            background: linear-gradient(to bottom, #ffffff, #f0f0f0);
+            border: 1px solid #ccc;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8);
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .skeumorphic-button:hover {
+            background: linear-gradient(to bottom, #f0f0f0, #e6e6e6);
+        }
+        .skeumorphic-button:active {
+            background: linear-gradient(to bottom, #e6e6e6, #f0f0f0);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .loading-spinner {
+            display: none;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-[Merriweather]">
+    <div id="loginSection" class="min-h-screen flex items-center justify-center">
+        <div class="skeumorphic p-8 w-full max-w-md">
+            <h2 class="text-2xl font-bold mb-6 text-center">ShopManager Pro</h2>
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block mb-1">Email</label>
+                    <input type="email" id="email" class="skeumorphic w-full p-2" required>
+                </div>
+                <div>
+                    <label class="block mb-1">Password</label>
+                    <input type="password" id="password" class="skeumorphic w-full p-2" required>
+                </div>
+                <button type="submit" class="skeumorphic-button w-full p-2 text-center">Login</button>
+                <p class="text-center">
+                    <a href="#" onclick="showRegister()" class="text-blue-600">Register New Shop</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <div id="mainApp" class="hidden">
+        <nav class="skeumorphic p-4 bg-white">
+            <div class="container mx-auto flex justify-between items-center">
+                <h1 class="text-xl font-bold">ShopManager Pro</h1>
+                <div class="flex space-x-4">
+                    <button onclick="showSection('inventory')" class="skeumorphic-button px-4 py-2">Inventory</button>
+                    <button onclick="showSection('sales')" class="skeumorphic-button px-4 py-2">Sales</button>
+                    <button onclick="showSection('reports')" class="skeumorphic-button px-4 py-2">Reports</button>
+                    <button onclick="logout()" class="skeumorphic-button px-4 py-2">Logout</button>
+                </div>
+            </div>
+        </nav>
+
+        <main class="container mx-auto p-4">
+            <div id="inventory" class="section">
+                <div class="skeumorphic p-6 mb-6">
+                    <h2 class="text-xl font-bold mb-4">Add New Product</h2>
+                    <form id="productForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="text" placeholder="Product Name" class="skeumorphic p-2" required>
+                        <select class="skeumorphic p-2" required>
+                            <option>Select Category</option>
+                            <option>Tops</option>
+                            <option>Bottoms</option>
+                            <option>Dresses</option>
+                        </select>
+                        <input type="number" placeholder="Cost Price" class="skeumorphic p-2" required>
+                        <input type="number" placeholder="Selling Price" class="skeumorphic p-2" required>
+                        <input type="number" placeholder="Quantity" class="skeumorphic p-2" required>
+                        <input type="text" placeholder="Code Word" class="skeumorphic p-2" required>
+                        <input type="file" accept="image/*" class="skeumorphic p-2">
+                        <button type="submit" class="skeumorphic-button p-2">Add Product</button>
+                    </form>
+                </div>
+
+                <div class="skeumorphic p-6">
+                    <h2 class="text-xl font-bold mb-4">Inventory List</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="bg-gray-50">
+                                    <th class="p-2">Code</th>
+                                    <th class="p-2">Product</th>
+                                    <th class="p-2">Category</th>
+                                    <th class="p-2">Stock</th>
+                                    <th class="p-2">Price</th>
+                                    <th class="p-2">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventoryList">
+                                <!-- Populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="sales" class="section hidden">
+                <div class="skeumorphic p-6">
+                    <h2 class="text-xl font-bold mb-4">New Bill</h2>
+                    <form id="billForm" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input type="text" placeholder="Customer Name" class="skeumorphic p-2">
+                            <input type="tel" placeholder="Customer Phone" class="skeumorphic p-2">
+                        </div>
+                        <div class="flex gap-4">
+                            <input type="text" placeholder="Product Code" class="skeumorphic p-2 flex-1">
+                            <button type="button" class="skeumorphic-button px-4">Add Item</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="bg-gray-50">
+                                        <th class="p-2">Item</th>
+                                        <th class="p-2">Quantity</th>
+                                        <th class="p-2">Price</th>
+                                        <th class="p-2">Total</th>
+                                        <th class="p-2">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="billItems">
+                                    <!-- Populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p>Subtotal: <span id="subtotal">₹0.00</span></p>
+                                <p>Tax (18%): <span id="tax">₹0.00</span></p>
+                                <p class="font-bold">Total: <span id="total">₹0.00</span></p>
+                            </div>
+                            <div class="space-x-2">
+                                <button type="button" class="skeumorphic-button px-4 py-2">Print</button>
+                                <button type="button" class="skeumorphic-button px-4 py-2">Email</button>
+                                <button type="submit" class="skeumorphic-button px-4 py-2 bg-green-500 text-white">Generate Bill</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div id="reports" class="section hidden">
+                <div class="skeumorphic p-6">
+                    <h2 class="text-xl font-bold mb-4">Reports</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="skeumorphic p-4">
+                            <h3 class="font-bold">Today's Sales</h3>
+                            <p class="text-2xl">₹12,450</p>
+                        </div>
+                        <div class="skeumorphic p-4">
+                            <h3 class="font-bold">This Month</h3>
+                            <p class="text-2xl">₹1,45,670</p>
+                        </div>
+                        <div class="skeumorphic p-4">
+                            <h3 class="font-bold">Low Stock Items</h3>
+                            <p class="text-2xl">12</p>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="skeumorphic p-4">
+                            <h3 class="font-bold mb-2">Generate Report</h3>
+                            <form class="flex gap-4">
+                                <input type="date" class="skeumorphic p-2">
+                                <input type="date" class="skeumorphic p-2">
+                                <select class="skeumorphic p-2">
+                                    <option>Sales Report</option>
+                                    <option>Inventory Report</option>
+                                    <option>Customer Report</option>
+                                </select>
+                                <button type="submit" class="skeumorphic-button px-4">Generate</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Initialize MongoDB connection
+        const appSlug = 'shop-manager-' + Math.random().toString(36).substr(2, 9);
+        let userId = localStorage.getItem('userId') || Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('userId', userId);
+
+        // Authentication
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('https://r0c8kgwocscg8gsokogwwsw4.zetaverse.one/mongodb', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer LF2B1QrAughmDgH4tbKHowk3ptn1',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        appSlug,
+                        action: 'read',
+                        collection: 'users',
+                        conditions: { email, password }
+                    })
+                });
+
+                const data = await response.json();
+                if (data.result?.read?.length > 0) {
+                    document.getElementById('loginSection').classList.add('hidden');
+                    document.getElementById('mainApp').classList.remove('hidden');
+                    loadInventory();
+                } else {
+                    alert('Invalid credentials');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                alert('Login failed');
+            }
+        });
+
+        // Inventory Management
+        async function loadInventory() {
+            try {
+                const response = await fetch('https://r0c8kgwocscg8gsokogwwsw4.zetaverse.one/mongodb', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer LF2B1QrAughmDgH4tbKHowk3ptn1',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        appSlug,
+                        action: 'read',
+                        collection: 'inventory'
+                    })
+                });
+
+                const data = await response.json();
+                const inventoryList = document.getElementById('inventoryList');
+                inventoryList.innerHTML = '';
+
+                data.result.read.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="p-2">${item.code}</td>
+                        <td class="p-2">${item.name}</td>
+                        <td class="p-2">${item.category}</td>
+                        <td class="p-2">${item.quantity}</td>
+                        <td class="p-2">₹${item.sellingPrice}</td>
+                        <td class="p-2">
+                            <button onclick="editItem('${item._id}')" class="skeumorphic-button px-2 py-1">Edit</button>
+                            <button onclick="deleteItem('${item._id}')" class="skeumorphic-button px-2 py-1">Delete</button>
+                        </td>
+                    `;
+                    inventoryList.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error loading inventory:', error);
+            }
+        }
+
+        // Navigation
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            document.getElementById(sectionId).classList.remove('hidden');
+        }
+
+        function logout() {
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('loginForm').reset();
+        }
+
+        // Initialize the app
+        document.getElementById('productForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            // Add product logic here
+        });
+
+        // Bill generation
+        document.getElementById('billForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            // Bill generation logic here
+        });
+
+        // Load initial inventory
+        if (!document.getElementById('mainApp').classList.contains('hidden')) {
+            loadInventory();
+        }
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
